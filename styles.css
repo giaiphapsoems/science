@@ -351,6 +351,8 @@ main {
 .upload-panel {
     width: 450px;
     padding: 2.5rem;
+    overflow-y: auto;
+    max-height: 90vh;
 }
 
 .btn-close {

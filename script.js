@@ -1,36 +1,45 @@
-// Dữ liệu ảnh mẫu (Mock Data)
-const mockImages = [
+// Cấu hình Supabase (Thay thế bằng thông tin thật của bạn)
+const SUPABASE_URL = 'https://snvpnudzvrcodifcwwww.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNudnBudXZkenZyY29kaWZjd3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNTQ5ODYsImV4cCI6MjA5NjgzMDk4Nn0.0zpZxBBX0lBKUnSlOup1Nngi7QJ6NZIi-mWj7i1qb9k';
+
+let supabase = null;
+if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+// Dữ liệu ảnh mẫu (Dùng khi chưa cấu hình Supabase)
+let currentImages = [
     {
         id: 1,
         title: "Tinh thể Axit Amin",
-        src: "assets/amino_acid.png",
+        image_url: "assets/amino_acid.png",
         mag: "400x",
         date: "15/05/2026",
-        desc: "Các tinh thể axit amin phân cực dưới ánh sáng giao thoa, tạo ra những mảng màu rực rỡ và cấu trúc hình học độc đáo."
+        description: "Các tinh thể axit amin phân cực dưới ánh sáng giao thoa, tạo ra những mảng màu rực rỡ và cấu trúc hình học độc đáo."
     },
     {
         id: 2,
         title: "Tế bào biểu bì Hành tây",
-        src: "assets/onion_cells.png",
+        image_url: "assets/onion_cells.png",
         mag: "1000x",
         date: "20/05/2026",
-        desc: "Cấu trúc vách tế bào rõ nét của lớp biểu bì củ hành tây được nhuộm màu để làm nổi bật nhân tế bào."
+        description: "Cấu trúc vách tế bào rõ nét của lớp biểu bì củ hành tây được nhuộm màu để làm nổi bật nhân tế bào."
     },
     {
         id: 3,
         title: "Sợi Vải Tổng Hợp",
-        src: "assets/fabric.png",
+        image_url: "assets/fabric.png",
         mag: "200x",
         date: "01/06/2026",
-        desc: "Sự đan xen phức tạp của các sợi vải tổng hợp qua lăng kính hiển vi nổi."
+        description: "Sự đan xen phức tạp của các sợi vải tổng hợp qua lăng kính hiển vi nổi."
     },
     {
         id: 4,
         title: "Bào tử Nấm",
-        src: "assets/spores.png",
+        image_url: "assets/spores.png",
         mag: "800x",
         date: "05/06/2026",
-        desc: "Hình thái đa dạng của các bào tử nấm đang trong quá trình phát tán, nhuộm huỳnh quang."
+        description: "Hình thái đa dạng của các bào tử nấm đang trong quá trình phát tán, nhuộm huỳnh quang."
     }
 ];
 
@@ -44,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const modalMag = document.getElementById('modal-mag');
     const modalDate = document.getElementById('modal-date');
-    const modalDesc = document.getElementById('modal-desc');
     const closeImageBtn = document.getElementById('close-modal');
 
     // Modal Upload
@@ -52,18 +60,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadModal = document.getElementById('upload-modal');
     const closeUploadBtn = document.getElementById('close-upload');
 
+    // Hàm load ảnh từ Supabase
+    async function loadImages() {
+        if (!supabase) {
+            console.log("Đang dùng dữ liệu mẫu. Hãy cấu hình Supabase để tải dữ liệu thật.");
+            renderGallery(currentImages);
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from('images')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                currentImages = data;
+            }
+            renderGallery(currentImages);
+        } catch (error) {
+            console.error("Lỗi khi tải dữ liệu từ Supabase:", error);
+            alert("Không thể kết nối đến Supabase. Đang hiển thị dữ liệu mẫu.");
+            renderGallery(currentImages);
+        }
+    }
+
     // Hàm render Gallery
-    function renderGallery() {
+    function renderGallery(imagesToRender) {
         galleryGrid.innerHTML = '';
         
-        mockImages.forEach((img, index) => {
+        imagesToRender.forEach((img, index) => {
             const delay = index * 0.1; // Staggered animation
             
             const item = document.createElement('div');
             item.className = 'gallery-item';
             item.style.animationDelay = `${delay}s`;
             item.innerHTML = `
-                <img src="${img.src}" alt="${img.title}" loading="lazy">
+                <img src="${img.image_url}" alt="${img.title}" loading="lazy">
                 <div class="item-overlay">
                     <h3 class="item-title">${img.title}</h3>
                     <span class="item-mag">${img.mag}</span>
@@ -77,11 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Xử lý Image Modal
     function openImageModal(data) {
-        modalImg.src = data.src;
+        modalImg.src = data.image_url;
         modalTitle.textContent = data.title;
         modalMag.textContent = data.mag;
-        modalDate.textContent = data.date;
-        modalDesc.textContent = data.desc;
+        // Xử lý ngày tháng hiển thị đẹp hơn
+        const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('vi-VN') : (data.date || "");
+        modalDate.textContent = dateStr;
         
         imageModal.classList.add('active');
         document.body.style.overflow = 'hidden'; // Ngăn cuộn trang
@@ -109,70 +145,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Xử lý form upload
     const uploadForm = document.getElementById('upload-form');
+    const submitBtn = uploadForm.querySelector('button[type="submit"]');
+
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const title = document.getElementById('upload-title').value;
-        const mag = document.getElementById('upload-mag').value;
-        const desc = document.getElementById('upload-desc').value;
         const fileInput = document.getElementById('upload-file');
-        const submitBtn = uploadForm.querySelector('button[type="submit"]');
-        
-        if (fileInput.files && fileInput.files[0]) {
-            // Đổi trạng thái nút
-            const originalBtnText = submitBtn.textContent;
-            submitBtn.textContent = 'Đang tải lên...';
-            submitBtn.disabled = true;
+        const file = fileInput.files[0];
+        if (!file) return;
 
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('mag', mag);
-            formData.append('desc', desc);
-            formData.append('image', fileInput.files[0]);
+        const title = file.name.replace(/\.[^/.]+$/, "");
+        const mag = "Không xác định";
 
-            try {
-                // Thử gửi lên API thật
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.newImage) {
-                        mockImages.unshift(result.newImage);
-                        renderGallery();
-                    }
-                    uploadForm.reset();
-                    closeUploadModal();
-                    alert('Tải ảnh lên thành công!');
-                } else {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-            } catch (error) {
-                // Nếu API bị lỗi (VD: HTTP 405 trên static server), chạy giả lập hiển thị ảnh cục bộ
-                console.warn('API không khả dụng, chuyển sang chế độ giả lập local:', error);
-                
-                const localImageUrl = URL.createObjectURL(fileInput.files[0]);
-                const newImage = {
-                    id: Date.now().toString(),
-                    title: title,
-                    mag: mag,
-                    desc: desc,
-                    date: new Date().toLocaleDateString('vi-VN'),
-                    src: localImageUrl
-                };
-                
-                mockImages.unshift(newImage);
-                renderGallery();
-                
-                uploadForm.reset();
-                closeUploadModal();
-                alert('Tải ảnh lên thành công! (Chế độ giả lập cục bộ - Ảnh sẽ mất khi tải lại trang)');
-            } finally {
-                submitBtn.textContent = originalBtnText;
+        // --- Xử lý chế độ giả lập cục bộ (nếu chưa có Supabase) ---
+        if (!supabase) {
+            // Tạo URL ảo để hiển thị ảnh trên máy
+            const localImageUrl = URL.createObjectURL(file);
+            
+            // Thêm vào danh sách hiện tại
+            currentImages.unshift({
+                id: Date.now(),
+                title: title,
+                image_url: localImageUrl,
+                mag: mag,
+                created_at: new Date().toISOString()
+            });
+
+            renderGallery(currentImages);
+            alert("Tải ảnh lên thành công! (Chế độ giả lập cục bộ - Ảnh sẽ mất khi tải lại trang)");
+            uploadForm.reset();
+            closeUploadModal();
+            
+            submitBtn.textContent = 'Đăng Ảnh';
+            submitBtn.disabled = false;
+            return;
+        }
+        // -----------------------------------------------------------
+
+        submitBtn.textContent = 'Đang tải lên...';
+        submitBtn.disabled = true;
+
+        try {
+            // 1. Upload file lên Storage (Ép buộc đuôi .jpg và đưa vào thư mục public/)
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            if (fileExt !== 'jpg' && fileExt !== 'jpeg') {
+                alert("Do giới hạn quyền bảo mật (Policy) của bạn, hệ thống chỉ chấp nhận tải lên ảnh định dạng .jpg!");
+                submitBtn.textContent = 'Đăng Ảnh';
                 submitBtn.disabled = false;
+                return;
             }
+
+            const fileName = `public/${Date.now()}.jpg`; 
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('microscope_images')
+                .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Lấy public URL của file vừa upload
+            const { data: { publicUrl } } = supabase.storage
+                .from('microscope_images')
+                .getPublicUrl(fileName);
+
+            // 3. Lưu thông tin vào Database
+            const { error: insertError } = await supabase
+                .from('images')
+                .insert([
+                    {
+                        title: title,
+                        image_url: publicUrl,
+                        mag: mag
+                    }
+                ]);
+
+            if (insertError) throw insertError;
+
+            // 4. Thành công, load lại danh sách ảnh
+            alert("Tải ảnh lên thành công!");
+            uploadForm.reset();
+            closeUploadModal();
+            loadImages(); // Tải lại danh sách từ server
+
+        } catch (error) {
+            console.error('Lỗi upload:', error);
+            alert(`Lỗi khi tải ảnh lên: ${error.message}`);
+        } finally {
+            submitBtn.textContent = 'Đăng Ảnh';
+            submitBtn.disabled = false;
         }
     });
 
@@ -192,26 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Khởi chạy với mock data ban đầu
-    renderGallery();
-    
-    // Fetch dữ liệu thật từ Google Sheets (nếu có cấu hình)
-    fetchImages();
-
-    async function fetchImages() {
-        try {
-            const response = await fetch('/api/images');
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    // Xóa mảng cũ và thêm dữ liệu thực tế vào
-                    mockImages.length = 0;
-                    data.forEach(img => mockImages.push(img));
-                    renderGallery();
-                }
-            }
-        } catch (error) {
-            console.error('Lỗi khi tải dữ liệu ảnh từ Sheet:', error);
-        }
-    }
+    // Khởi chạy: Load dữ liệu từ server khi trang vừa tải
+    loadImages();
 });
