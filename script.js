@@ -2,7 +2,7 @@
 const SUPABASE_URL = 'https://ramhowexrptrvepjsfko.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbWhvd2V4cnB0cnZlcGpzZmtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjU1MzQsImV4cCI6MjA5NzAwMTUzNH0.mpPR0fau3qRIn2EFkZSEP8XVSmV1mYl6a6wgqVvDCuc';
 const GEMINI_API_KEY = 'AQ.Ab8RN6Lr6l4XauyLZhhL35S0G6P4QIvGEZ4zq9g69O0UrJ-LjQ';
-const EMAIL_SUFFIX = '@microlearning.edu';
+const EMAIL_SUFFIX = '@student.com';
 
 let supabaseClient = null;
 try {
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-form').onsubmit = async (e) => {
         e.preventDefault();
         const username = document.getElementById('login-username').value;
-        const email = username.trim().toLowerCase() + EMAIL_SUFFIX;
+        const email = username.trim().toLowerCase().replace(/\s+/g, '') + EMAIL_SUFFIX;
         const password = document.getElementById('login-password').value;
         const btn = e.target.querySelector('button');
         
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const name = document.getElementById('reg-name').value;
         const username = document.getElementById('reg-username').value;
-        const email = username.trim().toLowerCase() + EMAIL_SUFFIX;
+        const email = username.trim().toLowerCase().replace(/\s+/g, '') + EMAIL_SUFFIX;
         const password = document.getElementById('reg-password').value;
         const btn = e.target.querySelector('button');
         
