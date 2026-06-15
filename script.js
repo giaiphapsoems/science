@@ -2,6 +2,7 @@
 const SUPABASE_URL = 'https://ramhowexrptrvepjsfko.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbWhvd2V4cnB0cnZlcGpzZmtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjU1MzQsImV4cCI6MjA5NzAwMTUzNH0.mpPR0fau3qRIn2EFkZSEP8XVSmV1mYl6a6wgqVvDCuc';
 const GEMINI_API_KEY = 'AQ.Ab8RN6Lr6l4XauyLZhhL35S0G6P4QIvGEZ4zq9g69O0UrJ-LjQ';
+const EMAIL_SUFFIX = '@microlearning.edu';
 
 let supabaseClient = null;
 try {
@@ -149,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authButtons.style.display = 'none';
             userMenu.style.display = 'flex';
             userMenu.classList.remove('hidden');
-            userDisplayName.textContent = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+            userDisplayName.textContent = currentUser.user_metadata?.full_name || currentUser.email.replace(EMAIL_SUFFIX, '');
         } else {
             currentUser = null;
             authButtons.style.display = 'flex';
@@ -166,7 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Đăng nhập
     document.getElementById('login-form').onsubmit = async (e) => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value;
+        const username = document.getElementById('login-username').value;
+        const email = username.trim().toLowerCase() + EMAIL_SUFFIX;
         const password = document.getElementById('login-password').value;
         const btn = e.target.querySelector('button');
         
@@ -187,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('register-form').onsubmit = async (e) => {
         e.preventDefault();
         const name = document.getElementById('reg-name').value;
-        const email = document.getElementById('reg-email').value;
+        const username = document.getElementById('reg-username').value;
+        const email = username.trim().toLowerCase() + EMAIL_SUFFIX;
         const password = document.getElementById('reg-password').value;
         const btn = e.target.querySelector('button');
         
@@ -242,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('microscope_images')
                 .getPublicUrl(fileName);
 
-            const authorName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+            const authorName = currentUser.user_metadata?.full_name || currentUser.email.replace(EMAIL_SUFFIX, '');
 
             const { error: insertError } = await supabaseClient
                 .from('images')
