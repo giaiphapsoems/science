@@ -208,23 +208,23 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.onclick = () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const category = btn.getAttribute('data-category');
+            const category = btn.getAttribute('data-category').trim().toLowerCase();
             if (category === 'all') {
                 renderGallery(allPosts);
             } else {
-                renderGallery(allPosts.filter(p => p.category === category));
+                renderGallery(allPosts.filter(p => p.category && p.category.trim().toLowerCase() === category));
             }
         };
     });
 
     function updateFilterCounts() {
         filterBtns.forEach(btn => {
-            const category = btn.getAttribute('data-category');
+            const category = btn.getAttribute('data-category').trim().toLowerCase();
             let count = 0;
             if (category === 'all') {
                 count = allPosts.length;
             } else {
-                count = allPosts.filter(p => p.category === category).length;
+                count = allPosts.filter(p => p.category && p.category.trim().toLowerCase() === category).length;
             }
             
             let originalText = btn.getAttribute('data-text');
@@ -319,11 +319,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             updateFilterCounts();
 
-            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-category');
+            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-category').trim().toLowerCase();
             if (activeFilter === 'all') {
                 renderGallery(allPosts);
             } else {
-                renderGallery(allPosts.filter(p => p.category === activeFilter));
+                renderGallery(allPosts.filter(p => p.category && p.category.trim().toLowerCase() === activeFilter));
             }
         } catch (error) {
             console.error("Lỗi khi tải dữ liệu:", error);
