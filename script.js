@@ -217,6 +217,25 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
+    function updateFilterCounts() {
+        filterBtns.forEach(btn => {
+            const category = btn.getAttribute('data-category');
+            let count = 0;
+            if (category === 'all') {
+                count = allPosts.length;
+            } else {
+                count = allPosts.filter(p => p.category === category).length;
+            }
+            
+            let originalText = btn.getAttribute('data-text');
+            if (!originalText) {
+                originalText = btn.textContent;
+                btn.setAttribute('data-text', originalText);
+            }
+            btn.textContent = `${originalText} (${count})`;
+        });
+    }
+
     function renderGallery(imagesToRender) {
         galleryGrid.innerHTML = '';
         
@@ -279,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadImages() {
         if (!supabaseClient) {
             allPosts = currentImages;
+            updateFilterCounts();
             renderGallery(allPosts);
             return;
         }
@@ -297,6 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 allPosts = currentImages;
             }
             
+            updateFilterCounts();
+
             const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-category');
             if (activeFilter === 'all') {
                 renderGallery(allPosts);
@@ -306,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Lỗi khi tải dữ liệu:", error);
             allPosts = currentImages;
+            updateFilterCounts();
             renderGallery(allPosts);
         }
     }
