@@ -675,3 +675,31 @@ main {
     white-space: pre-wrap;
     margin-bottom: 2rem;
 }
+
+/* AI Status Pulse */
+.ai-status {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.ai-status.analyzing {
+    animation: pulseText 1.5s infinite;
+    color: #f59e0b; /* Orange for analyzing */
+}
+
+.ai-status.success {
+    color: var(--accent-success); /* Green for success */
+}
+
+.ai-status.error {
+    color: #ef4444; /* Red for error */
+}
+
+@keyframes pulseText {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}

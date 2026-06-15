@@ -1,6 +1,7 @@
 // Cấu hình Supabase (Thay thế bằng thông tin thật của bạn)
 const SUPABASE_URL = 'https://ramhowexrptrvepjsfko.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbWhvd2V4cnB0cnZlcGpzZmtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjU1MzQsImV4cCI6MjA5NzAwMTUzNH0.mpPR0fau3qRIn2EFkZSEP8XVSmV1mYl6a6wgqVvDCuc';
+const GEMINI_API_KEY = 'AQ.Ab8RN6Lr6l4XauyLZhhL35S0G6P4QIvGEZ4zq9g69O0UrJ-LjQ';
 
 let supabaseClient = null;
 try {
@@ -34,6 +35,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerModal = document.getElementById('register-modal');
     const uploadModal = document.getElementById('upload-modal');
     const imageModal = document.getElementById('image-modal');
+
+    // Khởi tạo tính năng AI nhận diện ảnh
+    const fileInputAI = document.getElementById('upload-file');
+    const aiStatus = document.getElementById('ai-status');
+    const uploadCategory = document.getElementById('upload-category');
+    
+    fileInputAI.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            aiStatus.classList.add('hidden');
+            return;
+        }
+
+        aiStatus.classList.remove('hidden');
+        aiStatus.textContent = '🤖 AI đang phân tích ảnh...';
+        aiStatus.className = 'ai-status analyzing';
+        
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64Data = reader.result.split(',')[1];
+                
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: "Chỉ trả về ĐÚNG MỘT TỪ HOẶC CỤM TỪ duy nhất thuộc danh sách sau, không giải thích gì thêm: 'Thực vật', 'Động vật', 'Vi sinh vật', 'Khoáng chất', 'Khác'. Nếu không chắc chắn, trả về 'Khác'. Dựa vào cấu trúc quan sát được trong ảnh này để phân loại." },
+                                {
+                                    inline_data: {
+                                        mime_type: file.type,
+                                        data: base64Data
+                                    }
+                                }
+                            ]
+                        }]
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+                
+                let result = data.candidates[0].content.parts[0].text.trim().toLowerCase();
+                
+                let finalCategory = "Khác";
+                if (result.includes("thực vật")) finalCategory = "Thực vật";
+                else if (result.includes("động vật")) finalCategory = "Động vật";
+                else if (result.includes("vi sinh vật")) finalCategory = "Vi sinh vật";
+                else if (result.includes("khoáng chất")) finalCategory = "Khoáng chất";
+                
+                uploadCategory.value = finalCategory;
+                
+                aiStatus.textContent = `✨ AI tự động nhận diện: ${finalCategory}`;
+                aiStatus.className = 'ai-status success';
+            };
+            
+            reader.onerror = () => {
+                throw new Error("Không thể đọc file ảnh");
+            };
+            
+        } catch (error) {
+            console.error("Lỗi AI:", error);
+            aiStatus.textContent = `⚠️ Lỗi AI: Không thể nhận diện`;
+            aiStatus.className = 'ai-status error';
+        }
+    });
 
     // Modals Togglers
     document.getElementById('open-login-btn').onclick = () => loginModal.classList.add('active');
