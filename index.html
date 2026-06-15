@@ -8,33 +8,61 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
-    <!-- Background Elements -->
+    <!-- Premium Background Glowing Orbs -->
     <div class="bg-glow top-left"></div>
     <div class="bg-glow bottom-right"></div>
+    <div class="bg-glow center-accent"></div>
 
     <header class="glass-header">
         <div class="header-container">
-            <h1 class="logo">Micro<span>Vistas</span></h1>
-            <nav>
-                <button class="btn-primary" id="upload-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    Tải ảnh lên
-                </button>
+            <h1 class="logo">Micro<span>Learning</span></h1>
+            
+            <nav class="auth-nav">
+                <!-- User Profile & Upload (Hidden by default) -->
+                <div id="user-menu" class="hidden" style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="user-greeting">
+                        <span class="avatar-circle"></span>
+                        <span id="user-display-name">Học sinh</span>
+                    </div>
+                    <button class="btn-primary" id="upload-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Nộp Bài Thực Hành
+                    </button>
+                    <button class="btn-outline" id="logout-btn">Đăng xuất</button>
+                </div>
+
+                <!-- Login / Register Buttons -->
+                <div id="auth-buttons" style="display: flex; gap: 1rem;">
+                    <button class="btn-outline" id="open-login-btn">Đăng Nhập</button>
+                    <button class="btn-primary" id="open-register-btn">Tạo Tài Khoản</button>
+                </div>
             </nav>
         </div>
     </header>
 
     <main>
         <section class="hero">
-            <h2>Khám Phá Thế Giới Ẩn Giấu</h2>
-            <p>Trưng bày và lưu giữ vẻ đẹp ngoạn mục của các cấu trúc vi mô qua lăng kính hiển vi.</p>
+            <h2>Khám Phá Vẻ Đẹp Khoa Học</h2>
+            <p>Nền tảng chia sẻ và học tập thế giới vi mô. Hãy soi sáng những điều bé nhỏ và truyền cảm hứng cho cộng đồng.</p>
+        </section>
+
+        <!-- Bộ lọc (Filters) -->
+        <section class="filters-section">
+            <div class="filters-container">
+                <button class="filter-btn active" data-category="all">Tất Cả</button>
+                <button class="filter-btn" data-category="Thực vật">Thực Vật</button>
+                <button class="filter-btn" data-category="Động vật">Động Vật</button>
+                <button class="filter-btn" data-category="Vi sinh vật">Vi Sinh Vật</button>
+                <button class="filter-btn" data-category="Khoáng chất">Khoáng Chất</button>
+                <button class="filter-btn" data-category="Khác">Khác</button>
+            </div>
         </section>
 
         <section class="gallery-section">
@@ -44,40 +72,65 @@
         </section>
     </main>
 
-    <!-- Modal Xem Chi Tiết Ảnh -->
-    <div class="modal" id="image-modal">
+    <!-- Modal Đăng Nhập -->
+    <div class="modal" id="login-modal">
         <div class="modal-backdrop"></div>
-        <div class="modal-content glass-panel">
-            <button class="btn-close" id="close-modal">
+        <div class="modal-content glass-panel form-panel">
+            <button class="btn-close" id="close-login">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
-            <div class="modal-body">
-                <div class="modal-image-container">
-                    <img src="" alt="Chi tiết ảnh vi mô" id="modal-img">
-                </div>
-                <div class="modal-info">
-                    <h3 id="modal-title">Tên Mẫu Vật</h3>
-                    <div class="meta-data">
-                        <span class="badge" id="modal-mag">400x</span>
-                        <span class="date" id="modal-date">01/01/2026</span>
+            <div class="modal-body form-body">
+                <h3>Đăng Nhập</h3>
+                <form id="login-form" class="upload-form">
+                    <div class="form-group">
+                        <label>Email học sinh</label>
+                        <input type="email" id="login-email" required placeholder="vidu@truong.edu.vn">
                     </div>
-                    <button class="btn-primary" id="download-btn" style="margin-top: auto;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Tải hình về
-                    </button>
-                </div>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn-primary form-submit-btn">Vào Lớp</button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal Thông Báo Upload -->
+    <!-- Modal Đăng Ký -->
+    <div class="modal" id="register-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel form-panel">
+            <button class="btn-close" id="close-register">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="modal-body form-body">
+                <h3>Tạo Tài Khoản Học Tập</h3>
+                <form id="register-form" class="upload-form">
+                    <div class="form-group">
+                        <label>Họ và Tên</label>
+                        <input type="text" id="reg-name" required placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="reg-email" required placeholder="vidu@truong.edu.vn">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <input type="password" id="reg-password" required minlength="6" placeholder="Tối thiểu 6 ký tự">
+                    </div>
+                    <button type="submit" class="btn-primary form-submit-btn">Đăng Ký Ngay</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Đăng Bài Thực Hành -->
     <div class="modal" id="upload-modal">
         <div class="modal-backdrop"></div>
         <div class="modal-content glass-panel upload-panel">
@@ -87,20 +140,92 @@
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
-            <div class="modal-body" style="flex-direction: column; text-align: left;">
-                <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit', sans-serif; font-size: 1.8rem; text-align: center;">Thêm Ảnh Mới</h3>
+            <div class="modal-body form-body">
+                <h3>Báo Cáo Thực Hành</h3>
                 <form id="upload-form" class="upload-form">
                     <div class="form-group">
-                        <label for="upload-file">Chọn ảnh</label>
-                        <input type="file" id="upload-file" accept=".jpg" required>
+                        <label for="upload-file">Ảnh vi mô (Kết quả quan sát)</label>
+                        <input type="file" id="upload-file" accept=".jpg,.png,.jpeg" required>
                     </div>
-                    <button type="submit" class="btn-primary" style="justify-content: center; margin-top: 1rem; padding: 0.8rem;">Đăng Ảnh</button>
+                    <div class="form-group">
+                        <label for="upload-title">Tên mẫu vật</label>
+                        <input type="text" id="upload-title" required placeholder="VD: Tế bào vảy hành">
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <label for="upload-mag">Độ phóng đại</label>
+                            <input type="text" id="upload-mag" required placeholder="VD: 400x">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="upload-category">Phân loại</label>
+                            <select id="upload-category" required class="custom-select">
+                                <option value="Thực vật">Thực vật</option>
+                                <option value="Động vật">Động vật</option>
+                                <option value="Vi sinh vật">Vi sinh vật</option>
+                                <option value="Khoáng chất">Khoáng chất</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="upload-desc">Ghi chép / Kết luận quan sát</label>
+                        <textarea id="upload-desc" rows="4" required placeholder="Mô tả cấu trúc tế bào, hiện tượng quan sát được..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary form-submit-btn">Nộp Bài Lên Thư Viện</button>
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- Article Reader: Modal Xem Chi Tiết Bài Học -->
+    <div class="modal" id="image-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel article-panel">
+            <button class="btn-close" id="close-modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="modal-body article-body">
+                <div class="modal-image-container">
+                    <img src="" alt="Chi tiết ảnh vi mô" id="modal-img">
+                    <div class="image-overlay-badge" id="modal-category">Thực vật</div>
+                </div>
+                <div class="modal-info article-info">
+                    <div class="article-header">
+                        <h3 id="modal-title">Tên Mẫu Vật</h3>
+                        <div class="meta-data">
+                            <span class="badge" id="modal-mag">400x</span>
+                            <span class="date" id="modal-date">01/01/2026</span>
+                        </div>
+                    </div>
+                    
+                    <div class="article-author">
+                        <div class="author-avatar"></div>
+                        <div class="author-details">
+                            <span class="author-label">Người thực hiện:</span>
+                            <span class="author-name" id="modal-author">Học sinh ẩn danh</span>
+                        </div>
+                    </div>
+
+                    <div class="article-content" id="modal-desc">
+                        Không có ghi chép quan sát nào cho mẫu vật này.
+                    </div>
+                    
+                    <button class="btn-primary" id="download-btn" style="margin-top: auto;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Tải ảnh gốc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=4"></script>
 </body>
 </html>

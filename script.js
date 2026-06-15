@@ -1,99 +1,227 @@
 // Cấu hình Supabase (Thay thế bằng thông tin thật của bạn)
-const SUPABASE_URL = 'https://snvpnudzvrcodifcwwww.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNudnBudXZkenZyY29kaWZjd3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNTQ5ODYsImV4cCI6MjA5NjgzMDk4Nn0.0zpZxBBX0lBKUnSlOup1Nngi7QJ6NZIi-mWj7i1qb9k';
+const SUPABASE_URL = 'https://ramhowexrptrvepjsfko.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbWhvd2V4cnB0cnZlcGpzZmtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjU1MzQsImV4cCI6MjA5NzAwMTUzNH0.mpPR0fau3qRIn2EFkZSEP8XVSmV1mYl6a6wgqVvDCuc';
 
-let supabase = null;
-if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabaseClient = null;
+try {
+    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE' && window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+} catch (err) {
+    console.error("Lỗi khởi tạo Supabase:", err);
 }
 
-// Dữ liệu ảnh mẫu (Dùng khi chưa cấu hình Supabase)
+// Dữ liệu mẫu
 let currentImages = [
-    {
-        id: 1,
-        title: "Tinh thể Axit Amin",
-        image_url: "assets/amino_acid.png",
-        mag: "400x",
-        date: "15/05/2026",
-        description: "Các tinh thể axit amin phân cực dưới ánh sáng giao thoa, tạo ra những mảng màu rực rỡ và cấu trúc hình học độc đáo."
-    },
-    {
-        id: 2,
-        title: "Tế bào biểu bì Hành tây",
-        image_url: "assets/onion_cells.png",
-        mag: "1000x",
-        date: "20/05/2026",
-        description: "Cấu trúc vách tế bào rõ nét của lớp biểu bì củ hành tây được nhuộm màu để làm nổi bật nhân tế bào."
-    },
-    {
-        id: 3,
-        title: "Sợi Vải Tổng Hợp",
-        image_url: "assets/fabric.png",
-        mag: "200x",
-        date: "01/06/2026",
-        description: "Sự đan xen phức tạp của các sợi vải tổng hợp qua lăng kính hiển vi nổi."
-    },
-    {
-        id: 4,
-        title: "Bào tử Nấm",
-        image_url: "assets/spores.png",
-        mag: "800x",
-        date: "05/06/2026",
-        description: "Hình thái đa dạng của các bào tử nấm đang trong quá trình phát tán, nhuộm huỳnh quang."
-    }
+    { title: 'Tinh thể Axit Amin', mag: '400x', image_url: 'assets/amino_acid.png', category: 'Khoáng chất', author_name: 'Minh Tuấn', description: 'Cấu trúc tinh thể tuyệt đẹp dưới ánh sáng phân cực.' },
+    { title: 'Tế bào biểu bì Hành tây', mag: '1000x', image_url: 'assets/onion_cells.png', category: 'Thực vật', author_name: 'Ngọc Mai', description: 'Quan sát thấy rõ nhân và thành tế bào.' },
+    { title: 'Sợi Vải Tổng Hợp', mag: '200x', image_url: 'assets/fabric.png', category: 'Khác', author_name: 'Hải Đăng', description: 'Các sợi đan xen chặt chẽ.' },
+    { title: 'Bào tử Nấm', mag: '800x', image_url: 'assets/spores.png', category: 'Vi sinh vật', author_name: 'Hương Giang', description: 'Bào tử nấm rơm phát triển mạnh.' }
 ];
 
-// Khởi tạo DOM elements
+let currentUser = null;
+let allPosts = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     const galleryGrid = document.getElementById('gallery');
-    
-    // Modal Xem Ảnh
-    const imageModal = document.getElementById('image-modal');
-    const modalImg = document.getElementById('modal-img');
-    const modalTitle = document.getElementById('modal-title');
-    const modalMag = document.getElementById('modal-mag');
-    const modalDate = document.getElementById('modal-date');
-    const closeImageBtn = document.getElementById('close-modal');
-    const downloadBtn = document.getElementById('download-btn');
-
-    // Modal Upload
+    const authButtons = document.getElementById('auth-buttons');
+    const userMenu = document.getElementById('user-menu');
+    const userDisplayName = document.getElementById('user-display-name');
     const uploadBtn = document.getElementById('upload-btn');
-    const uploadModal = document.getElementById('upload-modal');
-    const closeUploadBtn = document.getElementById('close-upload');
+    const logoutBtn = document.getElementById('logout-btn');
 
-    // Hàm load ảnh từ Supabase
-    async function loadImages() {
-        if (!supabase) {
-            console.log("Đang dùng dữ liệu mẫu. Hãy cấu hình Supabase để tải dữ liệu thật.");
-            renderGallery(currentImages);
+    const loginModal = document.getElementById('login-modal');
+    const registerModal = document.getElementById('register-modal');
+    const uploadModal = document.getElementById('upload-modal');
+    const imageModal = document.getElementById('image-modal');
+
+    // Modals Togglers
+    document.getElementById('open-login-btn').onclick = () => loginModal.classList.add('active');
+    document.getElementById('close-login').onclick = () => loginModal.classList.remove('active');
+    document.getElementById('open-register-btn').onclick = () => registerModal.classList.add('active');
+    document.getElementById('close-register').onclick = () => registerModal.classList.remove('active');
+    
+    uploadBtn.onclick = () => {
+        if (!currentUser) {
+            alert("Vui lòng đăng nhập để Nộp Bài Thực Hành!");
+            loginModal.classList.add('active');
             return;
         }
+        uploadModal.classList.add('active');
+    };
+    
+    document.getElementById('close-upload').onclick = () => uploadModal.classList.remove('active');
+    document.getElementById('close-modal').onclick = () => {
+        imageModal.classList.remove('active');
+        document.body.style.overflow = ''; 
+    };
 
-        try {
-            const { data, error } = await supabase
-                .from('images')
-                .select('*')
-                .order('created_at', { ascending: false });
+    window.onclick = (e) => {
+        if (e.target.classList.contains('modal-backdrop')) {
+            e.target.parentElement.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    };
 
-            if (error) throw error;
-            
-            if (data && data.length > 0) {
-                currentImages = data;
-            }
-            renderGallery(currentImages);
-        } catch (error) {
-            console.error("Lỗi khi tải dữ liệu từ Supabase:", error);
-            alert("Không thể kết nối đến Supabase. Đang hiển thị dữ liệu mẫu.");
-            renderGallery(currentImages);
+    // Khởi tạo Auth
+    async function initAuth() {
+        if (!supabaseClient) return;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        updateAuthState(session);
+
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+            updateAuthState(session);
+        });
+    }
+
+    function updateAuthState(session) {
+        if (session && session.user) {
+            currentUser = session.user;
+            authButtons.style.display = 'none';
+            userMenu.style.display = 'flex';
+            userMenu.classList.remove('hidden');
+            userDisplayName.textContent = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+        } else {
+            currentUser = null;
+            authButtons.style.display = 'flex';
+            userMenu.style.display = 'none';
+            userMenu.classList.add('hidden');
         }
     }
 
-    // Hàm render Gallery
+    logoutBtn.onclick = async () => {
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        alert("Đã đăng xuất!");
+    };
+
+    // Đăng nhập
+    document.getElementById('login-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const btn = e.target.querySelector('button');
+        
+        try {
+            btn.textContent = 'Đang đăng nhập...';
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            loginModal.classList.remove('active');
+            e.target.reset();
+        } catch (err) {
+            alert("Lỗi đăng nhập: " + err.message);
+        } finally {
+            btn.textContent = 'Vào Lớp';
+        }
+    };
+
+    // Đăng ký
+    document.getElementById('register-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const btn = e.target.querySelector('button');
+        
+        try {
+            btn.textContent = 'Đang tạo tài khoản...';
+            const { error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name: name } }
+            });
+            if (error) throw error;
+            alert("Đăng ký thành công! Hãy đăng nhập để tiếp tục.");
+            registerModal.classList.remove('active');
+            loginModal.classList.add('active');
+            e.target.reset();
+        } catch (err) {
+            alert("Lỗi đăng ký: " + err.message);
+        } finally {
+            btn.textContent = 'Đăng Ký Ngay';
+        }
+    };
+
+    // Tải Bài Lên
+    document.getElementById('upload-form').onsubmit = async (e) => {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        const fileInput = document.getElementById('upload-file');
+        const title = document.getElementById('upload-title').value;
+        const mag = document.getElementById('upload-mag').value;
+        const category = document.getElementById('upload-category').value;
+        const desc = document.getElementById('upload-desc').value;
+        const file = fileInput.files[0];
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+
+        if (!file || !supabaseClient) return;
+
+        try {
+            submitBtn.textContent = 'Đang tải lên...';
+            submitBtn.disabled = true;
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `public/${Date.now()}_${Math.floor(Math.random()*1000)}.${fileExt}`;
+
+            const { error: uploadError } = await supabaseClient.storage
+                .from('microscope_images')
+                .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: publicUrlData } = supabaseClient.storage
+                .from('microscope_images')
+                .getPublicUrl(fileName);
+
+            const authorName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+
+            const { error: insertError } = await supabaseClient
+                .from('images')
+                .insert([{ 
+                    title: title, 
+                    mag: mag, 
+                    image_url: publicUrlData.publicUrl,
+                    category: category,
+                    description: desc,
+                    author_name: authorName,
+                    user_id: currentUser.id
+                }]);
+
+            if (insertError) throw insertError;
+
+            alert("Nộp bài thành công!");
+            e.target.reset();
+            uploadModal.classList.remove('active');
+            loadImages();
+        } catch (error) {
+            console.error(error);
+            alert("Có lỗi xảy ra: " + error.message);
+        } finally {
+            submitBtn.textContent = 'Nộp Bài Lên Thư Viện';
+            submitBtn.disabled = false;
+        }
+    };
+
+    // Filter Buttons
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.onclick = () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const category = btn.getAttribute('data-category');
+            if (category === 'all') {
+                renderGallery(allPosts);
+            } else {
+                renderGallery(allPosts.filter(p => p.category === category));
+            }
+        };
+    });
+
     function renderGallery(imagesToRender) {
         galleryGrid.innerHTML = '';
         
         imagesToRender.forEach((img, index) => {
-            const delay = index * 0.1; // Staggered animation
+            const delay = index * 0.05;
             
             const item = document.createElement('div');
             item.className = 'gallery-item';
@@ -101,193 +229,87 @@ document.addEventListener('DOMContentLoaded', () => {
             item.innerHTML = `
                 <img src="${img.image_url}" alt="${img.title}" loading="lazy">
                 <div class="item-overlay">
-                    <h3 class="item-title">${img.title}</h3>
-                    <span class="item-mag">${img.mag}</span>
+                    <div class="card-top">
+                        <span class="card-badge">${img.category || 'Khác'}</span>
+                        <span class="item-mag">${img.mag}</span>
+                    </div>
+                    <div class="card-bottom">
+                        <h3 class="item-title">${img.title}</h3>
+                        <div class="item-author">
+                            <div class="avatar-mini"></div>
+                            <span class="name">${img.author_name || 'Học sinh'}</span>
+                        </div>
+                    </div>
                 </div>
             `;
             
-            item.addEventListener('click', () => openImageModal(img));
+            item.addEventListener('click', () => openArticleModal(img));
             galleryGrid.appendChild(item);
         });
     }
 
-    // Xử lý Image Modal
-    function openImageModal(data) {
-        modalImg.src = data.image_url;
-        modalTitle.textContent = data.title;
-        modalMag.textContent = data.mag;
-        // Xử lý ngày tháng hiển thị đẹp hơn
-        const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('vi-VN') : (data.date || "");
-        modalDate.textContent = dateStr;
+    function openArticleModal(img) {
+        document.getElementById('modal-img').src = img.image_url;
+        document.getElementById('modal-category').textContent = img.category || 'Khác';
+        document.getElementById('modal-title').textContent = img.title;
+        document.getElementById('modal-mag').textContent = img.mag || 'N/A';
+        document.getElementById('modal-author').textContent = img.author_name || 'Học sinh ẩn danh';
+        document.getElementById('modal-desc').textContent = img.description || 'Không có ghi chép quan sát nào cho mẫu vật này.';
         
-        imageModal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Ngăn cuộn trang
-    }
-
-    function closeImageModal() {
-        imageModal.classList.remove('active');
-        document.body.style.overflow = '';
-        // Đợi animation xong mới xóa src để mượt
-        setTimeout(() => { modalImg.src = ''; }, 300);
-    }
-
-    // Xử lý Upload Modal
-    uploadBtn.addEventListener('click', () => {
-        uploadModal.classList.add('active');
-    });
-
-    function closeUploadModal() {
-        uploadModal.classList.remove('active');
-    }
-
-    // Đóng Modal khi bấm nút X
-    closeImageBtn.addEventListener('click', closeImageModal);
-    closeUploadBtn.addEventListener('click', closeUploadModal);
-
-    // Chức năng tải hình (Download)
-    downloadBtn.addEventListener('click', async () => {
-        const originalText = downloadBtn.innerHTML;
-        try {
-            downloadBtn.innerHTML = 'Đang tải...';
-            downloadBtn.disabled = true;
-
-            const response = await fetch(modalImg.src);
-            if (!response.ok) throw new Error("Lỗi mạng");
-            
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = blobUrl;
-            
-            // Xử lý tên file cho chuẩn (xóa dấu cách, ký tự đặc biệt)
-            let safeName = modalTitle.textContent ? modalTitle.textContent.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'anh_vi_mo';
-            a.download = safeName + '.jpg';
-            
-            document.body.appendChild(a);
-            a.click();
-            
-            window.URL.revokeObjectURL(blobUrl);
-            document.body.removeChild(a);
-        } catch (error) {
-            console.error('Lỗi khi tải ảnh:', error);
-            // Phương án dự phòng nếu bị lỗi chặn chéo tên miền (CORS)
-            window.open(modalImg.src, '_blank');
-        } finally {
-            downloadBtn.innerHTML = originalText;
-            downloadBtn.disabled = false;
+        const dateEl = document.getElementById('modal-date');
+        if (img.created_at) {
+            dateEl.textContent = new Date(img.created_at).toLocaleDateString('vi-VN');
+        } else {
+            dateEl.textContent = 'N/A';
         }
-    });
 
-    // Xử lý form upload
-    const uploadForm = document.getElementById('upload-form');
-    const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        imageModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
 
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const fileInput = document.getElementById('upload-file');
-        const file = fileInput.files[0];
-        if (!file) return;
+        const downloadBtn = document.getElementById('download-btn');
+        downloadBtn.onclick = async () => {
+            const a = document.createElement('a');
+            a.href = img.image_url;
+            a.download = `${img.title}.jpg`;
+            a.target = '_blank';
+            a.click();
+        };
+    }
 
-        const title = file.name.replace(/\.[^/.]+$/, "");
-        const mag = "Không xác định";
-
-        // --- Xử lý chế độ giả lập cục bộ (nếu chưa có Supabase) ---
-        if (!supabase) {
-            // Tạo URL ảo để hiển thị ảnh trên máy
-            const localImageUrl = URL.createObjectURL(file);
-            
-            // Thêm vào danh sách hiện tại
-            currentImages.unshift({
-                id: Date.now(),
-                title: title,
-                image_url: localImageUrl,
-                mag: mag,
-                created_at: new Date().toISOString()
-            });
-
-            renderGallery(currentImages);
-            alert("Tải ảnh lên thành công! (Chế độ giả lập cục bộ - Ảnh sẽ mất khi tải lại trang)");
-            uploadForm.reset();
-            closeUploadModal();
-            
-            submitBtn.textContent = 'Đăng Ảnh';
-            submitBtn.disabled = false;
+    async function loadImages() {
+        if (!supabaseClient) {
+            allPosts = currentImages;
+            renderGallery(allPosts);
             return;
         }
-        // -----------------------------------------------------------
-
-        submitBtn.textContent = 'Đang tải lên...';
-        submitBtn.disabled = true;
 
         try {
-            // 1. Upload file lên Storage (Ép buộc đuôi .jpg và đưa vào thư mục public/)
-            const fileExt = file.name.split('.').pop().toLowerCase();
-            if (fileExt !== 'jpg' && fileExt !== 'jpeg') {
-                alert("Do giới hạn quyền bảo mật (Policy) của bạn, hệ thống chỉ chấp nhận tải lên ảnh định dạng .jpg!");
-                submitBtn.textContent = 'Đăng Ảnh';
-                submitBtn.disabled = false;
-                return;
-            }
-
-            const fileName = `public/${Date.now()}.jpg`; 
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('microscope_images')
-                .upload(fileName, file);
-
-            if (uploadError) throw uploadError;
-
-            // 2. Lấy public URL của file vừa upload
-            const { data: { publicUrl } } = supabase.storage
-                .from('microscope_images')
-                .getPublicUrl(fileName);
-
-            // 3. Lưu thông tin vào Database
-            const { error: insertError } = await supabase
+            const { data, error } = await supabaseClient
                 .from('images')
-                .insert([
-                    {
-                        title: title,
-                        image_url: publicUrl,
-                        mag: mag
-                    }
-                ]);
+                .select('*')
+                .order('created_at', { ascending: false });
 
-            if (insertError) throw insertError;
-
-            // 4. Thành công, load lại danh sách ảnh
-            alert("Tải ảnh lên thành công!");
-            uploadForm.reset();
-            closeUploadModal();
-            loadImages(); // Tải lại danh sách từ server
-
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                allPosts = data;
+            } else {
+                allPosts = currentImages;
+            }
+            
+            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-category');
+            if (activeFilter === 'all') {
+                renderGallery(allPosts);
+            } else {
+                renderGallery(allPosts.filter(p => p.category === activeFilter));
+            }
         } catch (error) {
-            console.error('Lỗi upload:', error);
-            alert(`Lỗi khi tải ảnh lên: ${error.message}`);
-        } finally {
-            submitBtn.textContent = 'Đăng Ảnh';
-            submitBtn.disabled = false;
+            console.error("Lỗi khi tải dữ liệu:", error);
+            allPosts = currentImages;
+            renderGallery(allPosts);
         }
-    });
+    }
 
-    // Đóng Modal khi bấm ra ngoài (backdrop)
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-        backdrop.addEventListener('click', (e) => {
-            closeImageModal();
-            closeUploadModal();
-        });
-    });
-
-    // Đóng Modal khi bấm phím ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeImageModal();
-            closeUploadModal();
-        }
-    });
-
-    // Khởi chạy: Load dữ liệu từ server khi trang vừa tải
+    initAuth();
     loadImages();
 });
