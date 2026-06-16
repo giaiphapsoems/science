@@ -272,10 +272,42 @@ main {
     padding-bottom: 8rem;
 }
 
-.gallery-grid {
+/* Gallery Layout */
+.gallery-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.category-section {
+    width: 100%;
+}
+
+.category-title {
+    font-size: 1.8rem;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.2);
+    display: inline-block;
+    position: relative;
+}
+
+.category-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 50%;
+    height: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
 }
 
 .gallery-item {

@@ -322,6 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderGallery(imagesToRender) {
         galleryGrid.innerHTML = '';
+        galleryGrid.className = 'gallery-container';
         
         if (imagesToRender.length === 0) {
             galleryGrid.innerHTML = `
@@ -332,33 +333,70 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             return;
         }
+
+        const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-category').trim().toLowerCase();
         
-        imagesToRender.forEach((img, index) => {
-            const delay = index * 0.05;
+        let groups = {};
+        if (activeFilter === 'all') {
+            const categories = ['Thực vật', 'Động vật', 'Vi sinh vật', 'Khoáng chất', 'Khác'];
+            categories.forEach(cat => {
+                const catImages = imagesToRender.filter(img => img.category && img.category.trim().toLowerCase() === cat.toLowerCase());
+                if (catImages.length > 0) {
+                    groups[cat] = catImages;
+                }
+            });
+            const otherImages = imagesToRender.filter(img => !img.category || !categories.map(c=>c.toLowerCase()).includes(img.category.trim().toLowerCase()));
+            if (otherImages.length > 0) {
+                if(!groups['Khác']) groups['Khác'] = [];
+                groups['Khác'] = groups['Khác'].concat(otherImages);
+            }
+        } else {
+            const filterNameBtn = document.querySelector('.filter-btn.active').textContent;
+            groups[filterNameBtn] = imagesToRender;
+        }
+
+        for (const [catName, catImages] of Object.entries(groups)) {
+            const section = document.createElement('div');
+            section.className = 'category-section';
             
-            const item = document.createElement('div');
-            item.className = 'gallery-item';
-            item.style.animationDelay = `${delay}s`;
-            item.innerHTML = `
-                <img src="${img.image_url}" alt="${img.title}" loading="lazy">
-                <div class="item-overlay">
-                    <div class="card-top">
-                        <span class="card-badge">${img.category || 'Khác'}</span>
-                        <span class="item-mag">${img.mag}</span>
-                    </div>
-                    <div class="card-bottom">
-                        <h3 class="item-title">${img.title}</h3>
-                        <div class="item-author">
-                            <div class="avatar-mini"></div>
-                            <span class="name">${img.author_name || 'Học sinh'}</span>
+            if (activeFilter === 'all') {
+                const title = document.createElement('h2');
+                title.className = 'category-title';
+                title.textContent = `${catName} (${catImages.length})`;
+                section.appendChild(title);
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'category-grid';
+            
+            catImages.forEach((img, index) => {
+                const delay = index * 0.05;
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.style.animationDelay = `${delay}s`;
+                item.innerHTML = `
+                    <img src="${img.image_url}" alt="${img.title}" loading="lazy">
+                    <div class="item-overlay">
+                        <div class="card-top">
+                            <span class="card-badge">${img.category || 'Khác'}</span>
+                            <span class="item-mag">${img.mag}</span>
+                        </div>
+                        <div class="card-bottom">
+                            <h3 class="item-title">${img.title}</h3>
+                            <div class="item-author">
+                                <div class="avatar-mini"></div>
+                                <span class="name">${img.author_name || 'Học sinh'}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+                item.addEventListener('click', () => openArticleModal(img));
+                grid.appendChild(item);
+            });
             
-            item.addEventListener('click', () => openArticleModal(img));
-            galleryGrid.appendChild(item);
-        });
+            section.appendChild(grid);
+            galleryGrid.appendChild(section);
+        }
     }
 
     function openArticleModal(img) {
