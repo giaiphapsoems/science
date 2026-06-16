@@ -20,22 +20,35 @@
         <div class="header-container">
             <h1 class="logo">Micro<span>Learning</span></h1>
             
-            <nav class="auth-nav">
-                <!-- User Profile & Upload (Hidden by default) -->
-                <div id="user-menu" class="hidden" style="display: flex; align-items: center; gap: 1rem;">
-                    <div class="user-greeting">
-                        <span class="avatar-circle"></span>
-                        <span id="user-display-name">Học sinh</span>
-                    </div>
-                    <button class="btn-primary" id="upload-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        Nộp Bài Thực Hành
+            <nav class="main-nav">
+                <div class="view-mode-switch">
+                    <button class="view-mode-btn" data-mode="sample">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        Ảnh Mẫu (Chuẩn)
                     </button>
-                    <button class="btn-outline" id="logout-btn">Đăng xuất</button>
+                    <button class="view-mode-btn active" data-mode="student">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg>
+                        Bài Thực Hành
+                    </button>
+                </div>
+            </nav>
+
+            <nav class="auth-nav">
+                <!-- User Profile & Dropdown (Hidden by default) -->
+                <div id="user-menu" class="hidden">
+                    <div class="user-dropdown">
+                        <div class="user-greeting">
+                            <span class="avatar-circle"></span>
+                            <span id="user-display-name">Học sinh</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dropdown-icon"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" id="logout-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                                Đăng xuất
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Login / Register Buttons -->
@@ -51,30 +64,57 @@
         <section class="hero">
             <h2>Khám Phá Vẻ Đẹp Khoa Học</h2>
             <p>Nền tảng chia sẻ và học tập thế giới vi mô. Hãy soi sáng những điều bé nhỏ và truyền cảm hứng cho cộng đồng.</p>
+            
+            <div class="hero-search">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Tìm kiếm mẫu vật, tác giả...">
+                    <button id="search-btn" title="Tìm kiếm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </div>
         </section>
 
         <!-- Bộ lọc (Filters) -->
         <section class="filters-section">
-            <div class="view-mode-switch">
-                <button class="view-mode-btn" data-mode="sample">📚 Ảnh Mẫu (Chuẩn)</button>
-                <button class="view-mode-btn active" data-mode="student">📝 Bài Thực Hành</button>
-            </div>
-
             <div class="filters-container">
-                <button class="filter-btn active" data-category="all">Tất Cả</button>
-                <button class="filter-btn" data-category="Thực vật">Thực Vật</button>
-                <button class="filter-btn" data-category="Động vật">Động Vật</button>
-                <button class="filter-btn" data-category="Vi sinh vật">Vi Sinh Vật</button>
-                <button class="filter-btn" data-category="Khoáng chất">Khoáng Chất</button>
-                <button class="filter-btn" data-category="Khác">Khác</button>
+                <button class="filter-btn active" data-category="all" data-text="Tất Cả">Tất Cả</button>
+                <button class="filter-btn" data-category="thực vật" data-text="Thực Vật">Thực Vật</button>
+                <button class="filter-btn" data-category="động vật" data-text="Động Vật">Động Vật</button>
+                <button class="filter-btn" data-category="vi sinh vật" data-text="Vi Sinh Vật">Vi Sinh Vật</button>
+                <button class="filter-btn" data-category="khoáng chất" data-text="Khoáng Chất">Khoáng Chất</button>
+                <button class="filter-btn" data-category="khác" data-text="Khác">Khác</button>
+            </div>
+            
+            <!-- Chế độ hiển thị -->
+            <div class="layout-toggles">
+                <button class="layout-btn active" data-layout="grid" title="Card View">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                    <span style="font-size: 0.8rem; margin-left: 0.3rem;">Lưới</span>
+                </button>
+                <button class="layout-btn" data-layout="list" title="Table List View">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+                    <span style="font-size: 0.8rem; margin-left: 0.3rem;">Danh sách</span>
+                </button>
             </div>
         </section>
 
+        <!-- Thư viện Ảnh -->
         <section class="gallery-section">
-            <div class="gallery-grid" id="gallery">
-                <!-- Hình ảnh sẽ được render từ JavaScript -->
+            <div id="gallery" class="gallery-container view-grid">
+                <!-- Items render here via JS -->
             </div>
         </section>
+
+        <!-- Nút Nộp Bài (FAB) -->
+        <button class="fab-upload" id="upload-btn" title="Nộp Bài Thực Hành">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span class="fab-text">Nộp Bài</span>
+        </button>
     </main>
 
     <!-- Modal Đăng Nhập -->
@@ -151,7 +191,10 @@
                     <div class="form-group">
                         <label for="upload-file">Ảnh vi mô (Kết quả quan sát)</label>
                         <input type="file" id="upload-file" accept=".jpg,.png,.jpeg" required>
-                        <div id="ai-status" class="ai-status hidden">🤖 AI đang ngủ...</div>
+                        <div id="ai-status" class="ai-status hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                            AI đang ngủ...
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="upload-title">Tên mẫu vật</label>

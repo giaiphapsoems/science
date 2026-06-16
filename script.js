@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         aiStatus.classList.remove('hidden');
-        aiStatus.textContent = '🤖 AI đang phân tích ảnh...';
+        aiStatus.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.4rem; vertical-align:-3px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg> AI đang phân tích ảnh...';
         aiStatus.className = 'ai-status analyzing';
         
         try {
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 uploadCategory.value = finalCategory;
                 
-                aiStatus.textContent = `✨ AI tự động nhận diện: ${finalCategory}`;
+                aiStatus.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.4rem; vertical-align:-3px"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M7 5H3"/></svg> AI tự động nhận diện: ${finalCategory}`;
                 aiStatus.className = 'ai-status success';
             };
             
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error("Lỗi AI:", error);
-            aiStatus.textContent = `⚠️ Lỗi AI: Không thể nhận diện`;
+            aiStatus.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.4rem; vertical-align:-3px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Lỗi AI: Không thể nhận diện`;
             aiStatus.className = 'ai-status error';
         }
     });
@@ -286,18 +286,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Lọc tổng hợp (Search + Category)
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+
+    function applyFilters() {
+        const activeBtn = document.querySelector('.filter-btn.active');
+        const category = activeBtn ? activeBtn.getAttribute('data-category').trim().toLowerCase() : 'all';
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        
+        let filtered = allPosts;
+        
+        if (searchTerm) {
+            filtered = filtered.filter(p => 
+                (p.title && p.title.toLowerCase().includes(searchTerm)) ||
+                (p.author_name && p.author_name.toLowerCase().includes(searchTerm))
+            );
+        }
+
+        if (category !== 'all') {
+            if (category === 'khác') {
+                const predefined = ['thực vật', 'động vật', 'vi sinh vật', 'khoáng chất'];
+                filtered = filtered.filter(p => !p.category || !predefined.includes(p.category.trim().toLowerCase()));
+            } else {
+                filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === category);
+            }
+        }
+        
+        renderGallery(filtered);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+        searchBtn.addEventListener('click', applyFilters);
+    }
+
     // Filter Buttons
     const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach(btn => {
         btn.onclick = () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const category = btn.getAttribute('data-category').trim().toLowerCase();
-            if (category === 'all') {
-                renderGallery(allPosts);
-            } else {
-                renderGallery(allPosts.filter(p => p.category && p.category.trim().toLowerCase() === category));
-            }
+            applyFilters();
         };
     });
 
@@ -305,10 +335,24 @@ document.addEventListener('DOMContentLoaded', () => {
         filterBtns.forEach(btn => {
             const category = btn.getAttribute('data-category').trim().toLowerCase();
             let count = 0;
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            let filteredBase = allPosts;
+            if (searchTerm) {
+                filteredBase = filteredBase.filter(p => 
+                    (p.title && p.title.toLowerCase().includes(searchTerm)) ||
+                    (p.author_name && p.author_name.toLowerCase().includes(searchTerm))
+                );
+            }
+
             if (category === 'all') {
-                count = allPosts.length;
+                count = filteredBase.length;
             } else {
-                count = allPosts.filter(p => p.category && p.category.trim().toLowerCase() === category).length;
+                if (category === 'khác') {
+                    const predefined = ['thực vật', 'động vật', 'vi sinh vật', 'khoáng chất'];
+                    count = filteredBase.filter(p => !p.category || !predefined.includes(p.category.trim().toLowerCase())).length;
+                } else {
+                    count = filteredBase.filter(p => p.category && p.category.trim().toLowerCase() === category).length;
+                }
             }
             
             let originalText = btn.getAttribute('data-text');
@@ -320,9 +364,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Logic xử lý chuyển chế độ layout (Grid, Gallery, List)
+    const layoutBtns = document.querySelectorAll('.layout-btn');
+    layoutBtns.forEach(btn => {
+        btn.onclick = () => {
+            layoutBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const layout = btn.getAttribute('data-layout');
+            // Remove old view classes
+            galleryGrid.classList.remove('view-grid', 'view-gallery', 'view-list');
+            // Add new view class
+            galleryGrid.classList.add(`view-${layout}`);
+        };
+    });
+
     function renderGallery(imagesToRender) {
         galleryGrid.innerHTML = '';
-        galleryGrid.className = 'gallery-container';
+        
+        // Preserve current layout class
+        const currentLayoutBtn = document.querySelector('.layout-btn.active');
+        const layoutClass = currentLayoutBtn ? `view-${currentLayoutBtn.getAttribute('data-layout')}` : 'view-grid';
+        galleryGrid.className = `gallery-container ${layoutClass}`;
         
         if (imagesToRender.length === 0) {
             galleryGrid.innerHTML = `
@@ -351,7 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 groups['Khác'] = groups['Khác'].concat(otherImages);
             }
         } else {
-            const filterNameBtn = document.querySelector('.filter-btn.active').textContent;
+           // Update counts when rendering gallery
+           updateFilterCounts();
+            const filterNameBtn = document.querySelector('.filter-btn.active').textContent.split('(')[0].trim();
             groups[filterNameBtn] = imagesToRender;
         }
 
@@ -386,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="item-author">
                                 <div class="avatar-mini"></div>
                                 <span class="name">${img.author_name || 'Học sinh'}</span>
+                                <span class="date" style="margin-left: auto; font-size: 0.8rem; color: var(--text-secondary);">${img.created_at ? new Date(img.created_at).toLocaleDateString('vi-VN') : ''}</span>
                             </div>
                         </div>
                     </div>
@@ -443,7 +509,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) throw error;
             
             if (data && data.length > 0) {
-                studentImages = data;
+                // Tự động phân loại nếu category bị null
+                studentImages = data.map(img => {
+                    if (!img.category) {
+                        const text = `${img.title} ${img.description}`.toLowerCase();
+                        if (text.match(/hành tây|lá|thực vật|hoa|cây|rễ|tế bào thực vật|rêu|biểu bì/)) {
+                            img.category = 'Thực vật';
+                        } else if (text.match(/động vật|tế bào máu|thịt|cá|côn trùng|tóc|máu|hồng cầu|bạch cầu|cánh bướm/)) {
+                            img.category = 'Động vật';
+                        } else if (text.match(/vi sinh vật|vi khuẩn|nấm|bào tử|trùng|paramecium|e\. coli|trùng giày|vi rút|mốc|men/)) {
+                            img.category = 'Vi sinh vật';
+                        } else if (text.match(/khoáng chất|tinh thể|muối|cát|đá|đất|kim loại/)) {
+                            img.category = 'Khoáng chất';
+                        } else {
+                            img.category = 'Khác';
+                        }
+                    }
+                    return img;
+                });
             } else {
                 studentImages = [];
             }
