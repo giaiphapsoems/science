@@ -13,7 +13,7 @@ try {
 }
 
 // Dữ liệu mẫu
-let currentImages = [
+let sampleImages = [
     { title: 'Tinh thể Axit Amin', mag: '400x', image_url: 'assets/amino_acid.png', category: 'Khoáng chất', author_name: 'Minh Tuấn', description: 'Cấu trúc tinh thể tuyệt đẹp dưới ánh sáng phân cực.' },
     { title: 'Tế bào biểu bì Hành tây', mag: '1000x', image_url: 'assets/onion_cells.png', category: 'Thực vật', author_name: 'Ngọc Mai', description: 'Quan sát thấy rõ nhân và thành tế bào.' },
     { title: 'Sợi Vải Tổng Hợp', mag: '200x', image_url: 'assets/fabric.png', category: 'Khác', author_name: 'Hải Đăng', description: 'Các sợi đan xen chặt chẽ.' },
@@ -22,6 +22,8 @@ let currentImages = [
 
 let currentUser = null;
 let allPosts = [];
+let studentImages = [];
+let currentViewMode = 'student'; // 'student' or 'sample'
 
 document.addEventListener('DOMContentLoaded', () => {
     const galleryGrid = document.getElementById('gallery');
@@ -35,6 +37,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerModal = document.getElementById('register-modal');
     const uploadModal = document.getElementById('upload-modal');
     const imageModal = document.getElementById('image-modal');
+
+    // Chuyển đổi Tab (Ảnh Mẫu / Thực Hành)
+    const viewModeBtns = document.querySelectorAll('.view-mode-btn');
+    viewModeBtns.forEach(btn => {
+        btn.onclick = () => {
+            viewModeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentViewMode = btn.getAttribute('data-mode');
+            updateViewMode();
+        };
+    });
+
+    function updateViewMode() {
+        if (currentViewMode === 'sample') {
+            allPosts = sampleImages;
+        } else {
+            allPosts = studentImages;
+        }
+        
+        // Reset bộ lọc về "Tất Cả" khi chuyển tab
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.filter-btn[data-category="all"]').classList.add('active');
+        
+        updateFilterCounts();
+        renderGallery(allPosts);
+    }
 
     // Khởi tạo tính năng AI nhận diện ảnh
     const fileInputAI = document.getElementById('upload-file');
@@ -295,6 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderGallery(imagesToRender) {
         galleryGrid.innerHTML = '';
         
+        if (imagesToRender.length === 0) {
+            galleryGrid.innerHTML = `
+                <div class="empty-state">
+                    <h3>Chưa có ảnh nào!</h3>
+                    <p>Hãy bấm "Nộp Bài Thực Hành" để trở thành người đầu tiên đóng góp vào thư viện nhé.</p>
+                </div>
+            `;
+            return;
+        }
+        
         imagesToRender.forEach((img, index) => {
             const delay = index * 0.05;
             
@@ -353,9 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadImages() {
         if (!supabaseClient) {
-            allPosts = currentImages;
-            updateFilterCounts();
-            renderGallery(allPosts);
+            studentImages = [];
+            updateViewMode();
             return;
         }
 
@@ -368,24 +405,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) throw error;
             
             if (data && data.length > 0) {
-                allPosts = data;
+                studentImages = data;
             } else {
-                allPosts = currentImages;
+                studentImages = [];
             }
             
-            updateFilterCounts();
-
-            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-category').trim().toLowerCase();
-            if (activeFilter === 'all') {
-                renderGallery(allPosts);
-            } else {
-                renderGallery(allPosts.filter(p => p.category && p.category.trim().toLowerCase() === activeFilter));
-            }
+            updateViewMode();
         } catch (error) {
             console.error("Lỗi khi tải dữ liệu:", error);
-            allPosts = currentImages;
-            updateFilterCounts();
-            renderGallery(allPosts);
+            studentImages = [];
+            updateViewMode();
         }
     }
 
