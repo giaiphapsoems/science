@@ -24,7 +24,8 @@ let currentUser = null;
 let allPosts = [];
 let studentImages = [];
 let currentViewMode = 'student'; // 'student' or 'sample'
-
+let isAdmin = false; // Cờ Admin
+let currentViewingImage = null; // Lưu trữ ảnh đang xem
 document.addEventListener('DOMContentLoaded', () => {
     const galleryGrid = document.getElementById('gallery');
     const authButtons = document.getElementById('auth-buttons');
@@ -37,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerModal = document.getElementById('register-modal');
     const uploadModal = document.getElementById('upload-modal');
     const imageModal = document.getElementById('image-modal');
+    const editModal = document.getElementById('edit-modal');
+    const adminControls = document.getElementById('admin-controls');
+    const deleteBtn = document.getElementById('delete-post-btn');
+    const editBtn = document.getElementById('edit-post-btn');
 
     // Chuyển đổi Tab (Ảnh Mẫu / Thực Hành)
     const viewModeBtns = document.querySelectorAll('.view-mode-btn');
@@ -159,12 +164,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateAuthState(session) {
         if (session && session.user) {
             currentUser = session.user;
+            isAdmin = (currentUser.email === 'phuocnguyen123@student.com');
             authButtons.style.display = 'none';
             userMenu.style.display = 'flex';
             userMenu.classList.remove('hidden');
-            userDisplayName.textContent = currentUser.user_metadata?.full_name || currentUser.email.replace(EMAIL_SUFFIX, '');
+            let dName = currentUser.user_metadata?.full_name || currentUser.email.replace(EMAIL_SUFFIX, '');
+            if (isAdmin) dName += ' 👑 (Admin)';
+            userDisplayName.textContent = dName;
         } else {
             currentUser = null;
+            isAdmin = false;
             authButtons.style.display = 'flex';
             userMenu.style.display = 'none';
             userMenu.classList.add('hidden');
@@ -466,12 +475,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openArticleModal(img) {
+        currentViewingImage = img;
         document.getElementById('modal-img').src = img.image_url;
         document.getElementById('modal-category').textContent = img.category || 'Khác';
         document.getElementById('modal-title').textContent = img.title;
         document.getElementById('modal-mag').textContent = img.mag || 'N/A';
         document.getElementById('modal-author').textContent = img.author_name || 'Học sinh ẩn danh';
         document.getElementById('modal-desc').textContent = img.description || 'Không có ghi chép quan sát nào cho mẫu vật này.';
+        
+        if (isAdmin) {
+            adminControls.classList.remove('hidden');
+            adminControls.style.display = 'flex';
+        } else {
+            adminControls.classList.add('hidden');
+            adminControls.style.display = 'none';
+        }
         
         const dateEl = document.getElementById('modal-date');
         if (img.created_at) {
@@ -538,6 +556,93 @@ document.addEventListener('DOMContentLoaded', () => {
             updateViewMode();
         }
     }
+
+    deleteBtn.onclick = async () => {
+        if (!isAdmin || !currentViewingImage || !supabaseClient) return;
+        const confirmDelete = confirm(`Bạn có chắc chắn muốn XÓA bài viết "${currentViewingImage.title}" không? Hành động này không thể hoàn tác.`);
+        if (!confirmDelete) return;
+
+        try {
+            deleteBtn.textContent = "Đang xóa...";
+            const { error: dbError } = await supabaseClient
+                .from('images')
+                .delete()
+                .eq('id', currentViewingImage.id);
+
+            if (dbError) throw dbError;
+
+            // Xóa ảnh vật lý (optional but clean)
+            if (currentViewingImage.image_url) {
+                const parts = currentViewingImage.image_url.split('/microscope_images/');
+                if (parts.length > 1) {
+                    await supabaseClient.storage.from('microscope_images').remove([parts[1]]);
+                }
+            }
+
+            alert("Đã xóa bài viết thành công!");
+            imageModal.classList.remove('active');
+            document.body.style.overflow = '';
+            loadImages();
+        } catch (err) {
+            alert("Lỗi khi xóa: " + err.message);
+        } finally {
+            deleteBtn.textContent = "Xóa";
+        }
+    };
+
+    editBtn.onclick = () => {
+        if (!isAdmin || !currentViewingImage) return;
+        document.getElementById('edit-post-id').value = currentViewingImage.id;
+        document.getElementById('edit-title').value = currentViewingImage.title;
+        document.getElementById('edit-mag').value = currentViewingImage.mag;
+        document.getElementById('edit-category').value = currentViewingImage.category;
+        document.getElementById('edit-desc').value = currentViewingImage.description;
+        
+        editModal.classList.add('active');
+    };
+
+    document.getElementById('close-edit').onclick = () => editModal.classList.remove('active');
+
+    document.getElementById('edit-form').onsubmit = async (e) => {
+        e.preventDefault();
+        if (!isAdmin || !supabaseClient) return;
+
+        const id = document.getElementById('edit-post-id').value;
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        try {
+            submitBtn.textContent = 'Đang lưu...';
+            submitBtn.disabled = true;
+
+            const updates = {
+                title: document.getElementById('edit-title').value,
+                mag: document.getElementById('edit-mag').value,
+                category: document.getElementById('edit-category').value,
+                description: document.getElementById('edit-desc').value
+            };
+
+            const { error } = await supabaseClient
+                .from('images')
+                .update(updates)
+                .eq('id', id);
+
+            if (error) throw error;
+
+            alert('Đã cập nhật bài viết thành công!');
+            editModal.classList.remove('active');
+            
+            // Cập nhật currentViewingImage
+            currentViewingImage = { ...currentViewingImage, ...updates };
+            openArticleModal(currentViewingImage); // Cập nhật lại UI modal
+            loadImages(); // Cập nhật lại gallery
+        } catch (error) {
+            console.error('Update error:', error);
+            alert('Có lỗi xảy ra: ' + error.message);
+        } finally {
+            submitBtn.textContent = 'Lưu Thay Đổi';
+            submitBtn.disabled = false;
+        }
+    };
 
     initAuth();
     loadImages();

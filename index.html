@@ -270,10 +270,60 @@
                         </svg>
                         Tải ảnh gốc
                     </button>
+                    
+                    <!-- Admin Controls -->
+                    <div id="admin-controls" class="hidden" style="display: flex; gap: 0.5rem; flex: 1;">
+                        <button class="btn-outline" id="edit-post-btn" style="flex: 1; border-color: #f59e0b; color: #f59e0b;">Sửa</button>
+                        <button class="btn-outline" id="delete-post-btn" style="flex: 1; border-color: #ef4444; color: #ef4444;">Xóa</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Modal Sửa Bài Viết (Admin Only) -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel form-panel" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <button class="btn-close" id="close-edit">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="modal-body form-body">
+                <h3>Chỉnh Sửa Bài Viết</h3>
+                <form id="edit-form" class="upload-form">
+                    <input type="hidden" id="edit-post-id">
+                    <div class="form-group">
+                        <label for="edit-title">Tên mẫu vật</label>
+                        <input type="text" id="edit-title" required class="input-field">
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <label for="edit-mag">Độ phóng đại</label>
+                            <input type="text" id="edit-mag" required class="input-field">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="edit-category">Phân loại</label>
+                            <select id="edit-category" required class="custom-select">
+                                <option value="Thực vật">Thực vật</option>
+                                <option value="Động vật">Động vật</option>
+                                <option value="Vi sinh vật">Vi sinh vật</option>
+                                <option value="Khoáng chất">Khoáng chất</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-desc">Ghi chép / Kết luận quan sát</label>
+                        <textarea id="edit-desc" rows="4" required class="input-field"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary form-submit-btn">Lưu Thay Đổi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js?v=4"></script>
 </body>
